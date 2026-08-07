@@ -1,5 +1,4 @@
-# HSA-Med
-Hierarchical Semantic Alignment for Multi-Region Grounded Reasoning in Medical Vision-Language Models 
+# Hierarchical Semantic Alignment for Multi-Region Grounded Reasoning in Medical Vision-Language Models 
 
 Medical vision-language models have shown promising capabilities in medical image understanding, yet reliable grounding and reasoning remain challenging when multiple abnormalities coexist. Existing methods may generate plausible localizations and explanations without preserving consistent correspondence among disease categories, anatomical regions, and reasoning trajectories. To address this problem, we propose a hierarchical semantic alignment framework for multi-region grounding and clinical reasoning.
 First, Anatomical Prototype Alignment is designed to learn region-supervised Gaussian prototypes to capture shared anatomical organization and associates each disease query with relevant spatial regions. Guided by the resulting anatomical representation, Disease-aware Spatial Enhancement applies feature-wise modulation and selective gating to strengthen category-discriminative visual evidence for multi-category grounding. Next, we introduce a Clinical Evidence-guided Reasoning Chain to organize each trajectory from localized evidence and morphological
