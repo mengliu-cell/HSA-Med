@@ -1,0 +1,5 @@
+datasets:
+    # - json_path: /root/workspace/VLM-R1/root/datasets/MedRPG/data/MS_CXR/train.json  # 原代码
+    # - json_path: /home/ubuntu/medgroundr1_dataset/train_fixed_copy_with_solution_image_problem.jsonl
+    - json_path: /home/ubuntu/medgroundr1_dataset/chestxray8_output_train_fixed_with_solution.jsonl
+    
