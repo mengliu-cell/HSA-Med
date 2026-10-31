@@ -1,0 +1,53 @@
+<image>
+</image>
+
+Input: Chest X-ray image and supplied disease-region pairs.
+The category hints are predictions to assess, not guaranteed diagnoses.
+Keep each supplied bounding box unchanged. Do not propose five candidate
+boxes, calculate a consensus region, merge regions, or relocate the boxes.
+
+{% if bbox is defined and bbox is iterable and bbox is not string and bbox | length > 0 %}
+{% if bbox[0] is iterable and bbox[0] is not string %}
+{% set regions = bbox %}
+{% else %}
+{% set regions = [bbox] %}
+{% endif %}
+Provided regions:
+{% for box in regions %}
+- BBox {{ loop.index }}: {{ box }};
+  category hint: {% if label_text is defined and label_text is string %}{{ label_text }}{% elif label_text is defined and label_text is iterable and loop.index0 < label_text | length %}{{ label_text[loop.index0] }}{% else %}Unknown{% endif %}
+{% endfor %}
+{% else %}
+No valid region list was supplied. State that region-specific reasoning
+cannot be completed; do not invent bounding boxes.
+{% endif %}
+
+Task:
+Analyze EACH supplied region independently using the four-step Clinical
+Evidence-guided Reasoning Chain:
+Step 1. Evidence Localization: describe the observed evidence inside the box.
+Step 2. Morphological Analysis: describe its morphology, size, margin,
+density/texture and relevant surrounding structures.
+Step 3. Clinical Interpretation: explain how the evidence supports or
+contradicts the category hint; acknowledge uncertainty or unsupported hints.
+Step 4. Diagnostic Conclusion: give a conclusion supported by this region.
+Do not use another box's evidence to justify the current finding.
+
+Output one block for every supplied region, ordered by clinical priority:
+
+Priority <rank>:
+- Region ID: BBox <original input index>
+- Bounding Box: [x_min, y_min, x_max, y_max]
+- Diagnosis: <region-specific diagnostic conclusion>
+- Reasoning:
+  Step 1. Evidence Localization: ...
+  Step 2. Morphological Analysis: ...
+  Step 3. Clinical Interpretation: ...
+  Step 4. Diagnostic Conclusion: ...
+- Priority Level: <1 / 2 / 3 / 4>
+
+Replace placeholders with actual values. Priority rank determines presentation
+order; Region ID always refers to the original input box and must remain
+unchanged after sorting. Use the supplied coordinate system and exact box
+coordinates. Include no extra candidate boxes.
+

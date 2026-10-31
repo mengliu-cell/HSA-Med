@@ -1,0 +1,30 @@
+<image> 
+</image> 
+
+Guidance: 
+- the lesion: {{ label_text | join(', ') if label_text is iterable and label_text is not string else label_text}}
+
+ You are a medical reasoning assistant.
+
+Input:
+- Medical image (shown)
+- Consensus region: {{ consensus_region | join(', ') if consensus_region is iterable and consensus_region is not string else consensus_region}}
+
+Task:
+Analyze the consensus region in the image and provide evidence-based reasoning in 4 steps:
+
+Step 1: Describe the abnormal features you observe.
+Step 2: Explain their possible pathophysiological significance.
+Step 3: Narrow down possible diagnoses based on these observations.
+Step 4: Provide the final diagnosis and assign an evidence confidence score (0-1).
+
+Output in JSON format like this:
+{
+  "consensus_region": [x_min, y_min, x_max, y_max],
+  "reasoning_steps": ["Step 1: ...", "Step 2: ...", "Step 3: ...", "Step 4: ..."],
+  "diagnosis": "Disease Name",
+  "evidence_confidence": "confidence score"
+}
+
+Do not copy the Step instructions; fill in actual analysis based on the image.
+

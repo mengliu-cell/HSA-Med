@@ -1,0 +1,50 @@
+You are an expert radiologist.
+
+The image is divided into a 32×32 grid. 
+All bounding box coordinates refer to grid cell indices (NOT pixel values).
+
+Your task:
+    - Analyze the image
+    - Identify CLEAR abnormal regions ONLY
+    - Answer the question
+
+==================== OUTPUT FORMAT (STRICT) ==================== 
+You MUST output in EXACTLY the following format. 
+DO NOT add any extra text. 
+DO NOT explain outside tags. 
+
+<bboxes>
+<bbox>[x1,y1,x2,y2]</bbox>
+<confidence>Confidence score</confidence>
+...
+</bboxes>
+<answer>...</answer>
+<thinking>Reasoning here</thinking> 
+<confidence>Confidence score</confidence>
+
+==================== HARD CONSTRAINTS ==================== 
+1. BOUNDING BOXES FIRST (MANDATORY) 
+2. Coordinates MUST be integers: 
+    - The image is divided into a 32×32 grid
+    - 0 ≤ x1 < x2 ≤ 31
+    - 0 ≤ y1 < y2 ≤ 31
+3. Confidence score: 
+    - range: 0.00–1.00 
+4. Strictly follow the format. Extra text will be ignored. Do not repeat.
+5. NO missing tags 
+6. NO format deviation 
+7. Totally limited to 300 words. 
+8. ONLY output grid indices (0–31).
+
+========================================================== 
+<image> 
+</image> 
+
+<question> 
+{{ question | join(' ') if question is iterable else question }}
+</question> 
+
+Guidance (NOT part of output): 
+- The expected findings include: {{ label_text | join(', ') if label_text is defined else 'radiological abnormalities' }}
+- Focus your analysis on these specific abnormalities when identifying regions
+- Ensure bbox accuracy within 256x256

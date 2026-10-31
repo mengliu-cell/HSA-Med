@@ -1,0 +1,36 @@
+<image> 
+</image> 
+
+Guidance: 
+- the lesion: {{ label_text | join(', ') if label_text is iterable and label_text is not string else label_text}}
+
+Task 1: Identify candidate lesion regions in the input medical image.
+
+Instructions:
+1. Based on the image and the description, propose 5 bounding boxes that may contain the lesion.
+2. Each bounding box should be output in the format: [x_min, y_min, x_max, y_max].
+3. The 5 bounding boxes should cover different plausible areas to account for uncertainty.
+4. Do not perform diagnosis in this step.
+5. Output strictly as a JSON array of 5 bounding boxes.
+
+
+Task 2: Perform evidence-conditioned reasoning based on candidate bounding boxes.
+
+Instructions:
+1. Compute the consensus region from the 5 candidate bounding boxes:
+   - Identify the spatial region where the majority of bounding boxes overlap.
+   - This consensus region represents the most reliable evidence of lesion location.
+2. Use only the consensus region as the evidence for diagnosis.
+3. Perform the following reasoning steps:
+   - Step 1: Describe the abnormal features you observe.
+   - Step 2: Explain their possible pathophysiological significance.
+   - Step 3: Narrow down possible diagnoses based on these observations.
+   - Step 4: Provide the final diagnosis and assign an evidence confidence score (0-1).
+4. Output format:
+{
+  "consensus_region": [x_min, y_min, x_max, y_max],
+  "reasoning_steps": ["Step 1: ...", "Step 2: ...", "Step 3: ...", "Step 4: ..."],
+  "diagnosis": "Disease name",
+  "evidence_confidence": "Confidence score”
+}
+

@@ -1,0 +1,69 @@
+<image>
+</image>
+
+Input:
+- X-ray image (shown)
+{% if bbox is iterable and bbox is not string and bbox[0] is iterable %}
+- {{ bbox | length }} regions of interest identified:
+{% for i in range(bbox | length) %}
+  Region {{ i + 1 }}: bbox={{ bbox[i] }}, diagnosis hint={{ label_text[i] if label_text is iterable and label_text is not string else label_text }}
+{% endfor %}
+{% else %}
+- 1 region of interest identified:
+  Region 1: bbox={{ bbox }}, diagnosis hint={{ label_text | join(', ') if label_text is iterable and label_text is not string else label_text }}
+{% endif %}
+
+Task:
+
+The bounding boxes have been localized.
+Please analyze EACH region separately, then rank all findings by clinical priority.
+
+{% if bbox is iterable and bbox is not string and bbox[0] is iterable %}
+{% for i in range(bbox | length) %}
+--- Region {{ i + 1 }} Analysis ---
+
+Suspected diagnosis: {{ label_text[i] if label_text is iterable and label_text is not string else label_text }}
+Bounding box: {{ bbox[i] }}
+
+Step 1. Evidence Localization:
+Describe what imaging evidence is observed inside this bounding box.
+
+Step 2. Morphological Analysis:
+Describe the morphology, size, margin, density, texture and surrounding structures within this region.
+
+Step 3. Clinical Interpretation:
+Explain why these imaging findings support or contradict the suspected diagnosis for this region.
+
+Step 4. Diagnostic Conclusion:
+Give the diagnostic conclusion for this region.
+
+{% endfor %}
+{% else %}
+--- Region 1 Analysis ---
+
+Suspected diagnosis: {{ label_text | join(', ') if label_text is iterable and label_text is not string else label_text }}
+Bounding box: {{ bbox }}
+
+Step 1. Evidence Localization:
+Describe what imaging evidence is observed inside this bounding box.
+
+Step 2. Morphological Analysis:
+Describe the morphology, size, margin, density, texture and surrounding structures within this region.
+
+Step 3. Clinical Interpretation:
+Explain why these imaging findings support or contradict the suspected diagnosis for this region.
+
+Step 4. Diagnostic Conclusion:
+Give the diagnostic conclusion for this region.
+
+{% endif %}
+
+--- Final Summary (sorted by clinical priority, most urgent first) ---
+
+For each finding, output in the following format:
+
+Priority [N]:
+- Bounding Box: <bbox coordinates>
+- Diagnosis: <diagnosis>
+- Reasoning: <key imaging evidence and clinical reasoning>
+- Priority Level: <1 / 2 / 3 / 4>

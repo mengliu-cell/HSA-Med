@@ -1,0 +1,32 @@
+<image> 
+</image> 
+
+<question> 
+{{ question | join(' ') if question is iterable and question is not string else question }}
+</question> 
+
+Guidance (NOT part of output): 
+- the lesion description: {{ label_text | join(', ') if label_text is iterable and label_text is not string else label_text}}
+- You are an expert radiologist. Give you an image, a question about the lesion description.please provide 5 possible bounding boxes of the lesions. You may conduct multiple rounds of grounding to refine your region as you want. Then calculate the entrophy of the five bounding boxes. Then you choose the smallest entrophy of corresponding bounding box and the cropped image based on the image. Then you need to provide the answer and reasoning process based on the chosing bounding box.
+
+
+==================== OUTPUT FORMAT (STRICT) ==================== 
+OUTPUT Format Example:
+
+<bboxes>
+<bbox>[x1,y1,x2,y2]</bbox>
+<confidence>smallst entrophy</confidence>
+</bboxes>
+<answer>...</answer>
+<thinking>Reasoning</thinking> 
+
+==================== HARD CONSTRAINTS ==================== 
+// Same as before.
+1. BOUNDING BOX is with the smallest entrophy 
+2. smallst entrophy
+    - range: 0.00–1.00 
+3. Strictly follow the format. Extra text will be ignored. Do not repeat.
+4. NO missing tags. 
+5. NO format deviation. 
+6. Totally limited to 500 words. 
+
