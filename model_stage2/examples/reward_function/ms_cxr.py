@@ -548,23 +548,23 @@ def compute_contrastive_align(
     return float(np.mean(text_to_region + region_to_text) / 2.0)
 
 
-def compute_counterfactual(regions: List[Dict], image) -> float:
-    """R_counterfactual（仅 mask 项）= mean_i (1 - V(mask(crop_i), reasoning_i))。
+# def compute_counterfactual(regions: List[Dict], image) -> float:
+#     """R_counterfactual（仅 mask 项）= mean_i (1 - V(mask(crop_i), reasoning_i))。
 
-    遮挡掉 bbox_i 的病灶信息后，原 reasoning 不应再被支持；若仍被支持说明模型在 hallucinate。
+#     遮挡掉 bbox_i 的病灶信息后，原 reasoning 不应再被支持；若仍被支持说明模型在 hallucinate。
 
-    注意：原设计的 swap / replace 两项需要对编辑后的图像【重跑策略模型】得到 ŷ_i^swap / ŷ_i^replace，
-    而本 reward 接口只拿到解码后的文本、无法调用策略模型，因此这两项无法在此实现，
-    需作为离线数据增强 pipeline 单独构造。这里只实现 verifier-only 的 mask 项。
-    """
-    if not regions or image is None:
-        return 0.0
-    scores = []
-    for r in regions:
-        crop = _crop(image, r["bbox"])
-        masked = _mask_crop(crop)
-        scores.append(1.0 - verify(masked, r["reasoning"]))
-    return float(np.mean(scores))
+#     注意：原设计的 swap / replace 两项需要对编辑后的图像【重跑策略模型】得到 ŷ_i^swap / ŷ_i^replace，
+#     而本 reward 接口只拿到解码后的文本、无法调用策略模型，因此这两项无法在此实现，
+#     需作为离线数据增强 pipeline 单独构造。这里只实现 verifier-only 的 mask 项。
+#     """
+#     if not regions or image is None:
+#         return 0.0
+#     scores = []
+#     for r in regions:
+#         crop = _crop(image, r["bbox"])
+#         masked = _mask_crop(crop)
+#         scores.append(1.0 - verify(masked, r["reasoning"]))
+#     return float(np.mean(scores))
 
 
 def compute_score(
@@ -581,22 +581,6 @@ def compute_score(
     # img_h: int = 256,
     **kwargs
 ) -> Dict[str, float]:
-    """
-    Compute multi-task reward for medical imaging
-
-    Args:
-        solution: Model's complete output (including bboxes, thinking, answer)
-        ground_truth: Ground truth label (can be string or list of strings)
-        data_format: "original" for your dataset, "standard" for standard format
-        gt_bounding_boxes: List of ground truth bounding boxes [["x1","y1","x2","y2"], ...] or [[x1,y1,x2,y2], ...]
-        image: 图像路径或 PIL.Image；缺失时三个对齐 reward 记 0
-        weights: 各分项权重 dict（answer/format/local_support/contrastive/counterfactual）
-        contrastive_margin: contrastive reward 的 margin
-        **kwargs: Other arguments
-
-    Returns:
-        dict，含 overall 与各分项分数（便于训练侧聚合 metrics）
-    """
 
     # Handle ground truth format
     if isinstance(ground_truth, list):
@@ -636,7 +620,7 @@ def compute_score(
 
     local_support = 0.0
     contrastive = 0.0
-    counterfactual = 0.0
+    # counterfactual = 0.0
     if regions and pil_image is not None:
         # V[i,j] = V(crop_i, reasoning_j)，local_support 与 contrastive 共用，避免重复推理
         verify_mat = _verify_matrix(regions, pil_image)
@@ -645,24 +629,24 @@ def compute_score(
             regions, pil_image, margin=contrastive_margin,
             mode=contrastive_mode, tau=contrastive_tau, verify_mat=verify_mat,
         )
-        counterfactual = compute_counterfactual(regions, pil_image)
+        # counterfactual = compute_counterfactual(regions, pil_image)
 
     # Combine scores with weights
     default_weights = {
-        "answer": 0.15,
-        "format": 0.25,
-        "local_support": 0.20,
-        "contrastive": 0.20,   # 一一对应最核心，给最高权重
-        "counterfactual": 0.20,
+        # "answer": 0.15,
+        # "format": 0.25,
+        "local_support": 0.50,
+        "contrastive": 0.50,   # 一一对应最核心，给最高权重
+        # "counterfactual": 0.20,
     }
     w = {**default_weights, **(weights or {})}
 
     final_score = (
-        w["answer"] * answer_score +
-        w["format"] * format_score +
+    #     w["answer"] * answer_score +
+    #     w["format"] * format_score +
         w["local_support"] * local_support +
         w["contrastive"] * contrastive +
-        w["counterfactual"] * counterfactual
+        # w["counterfactual"] * counterfactual
     )
 
     return {
