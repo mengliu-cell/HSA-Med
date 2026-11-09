@@ -110,16 +110,16 @@ def _crop(image, bbox):
     return image.crop((x1, y1, x2, y2))
 
 
-def _mask_crop(crop):
-    """对 crop 做反事实遮挡：高斯模糊掉病灶信息，使其不再支持原 reasoning。"""
-    try:
-        from PIL import ImageFilter
+# def _mask_crop(crop):
+#     """对 crop 做反事实遮挡：高斯模糊掉病灶信息，使其不再支持原 reasoning。"""
+#     try:
+#         from PIL import ImageFilter
 
-        # 半径取 crop 短边的一半，足以抹掉局部纹理/病灶
-        radius = max(8, min(crop.width, crop.height) // 2)
-        return crop.filter(ImageFilter.GaussianBlur(radius=radius))
-    except Exception:
-        return crop
+#         # 半径取 crop 短边的一半，足以抹掉局部纹理/病灶
+#         radius = max(8, min(crop.width, crop.height) // 2)
+#         return crop.filter(ImageFilter.GaussianBlur(radius=radius))
+#     except Exception:
+#         return crop
 
 
 def verify(crop, text: str) -> float:
@@ -155,7 +155,6 @@ def verify(crop, text: str) -> float:
         print(f"[ms_cxr reward] WARNING: verify() failed ({e}); returning 0.5.")
         return 0.5
 
-# 现在的主要问题是bbox的坐标不准确，需要进行修改计算思路，让模型按照grid进行输出，进行坐标量化，修改模型输入和输出坐标量化
 # def quantize_bbox(box, W, H, grid_size=32):   # 离散化坐标, 每个坐标会变成0~31中的数字
 #     x1, y1, x2, y2 = box
     
@@ -329,7 +328,7 @@ def compute_bbox_set_score(pred_bboxes, gt_bboxes, img_w, img_h):
     # return max(score, 0.0)
     return matching  # 先只用matching score作为bbox的reward
 
-# 第二步就会跳进这个函数，计算reward score
+
 # ============================================================================
 # bbox–reasoning 对齐：解析 per-bbox 配对输出 + 三个对齐 reward
 # ============================================================================
@@ -581,6 +580,22 @@ def compute_score(
     # img_h: int = 256,
     **kwargs
 ) -> Dict[str, float]:
+    """
+    Compute multi-task reward for medical imaging
+
+    Args:
+        solution: Model's complete output (including bboxes, thinking, answer)
+        ground_truth: Ground truth label (can be string or list of strings)
+        data_format: "original" for your dataset, "standard" for standard format
+        gt_bounding_boxes: List of ground truth bounding boxes [["x1","y1","x2","y2"], ...] or [[x1,y1,x2,y2], ...]
+        image: 图像路径或 PIL.Image；缺失时三个对齐 reward 记 0
+        weights: 各分项权重 dict（answer/format/local_support/contrastive/counterfactual）
+        contrastive_margin: contrastive reward 的 margin
+        **kwargs: Other arguments
+
+    Returns:
+        dict，含 overall 与各分项分数（便于训练侧聚合 metrics）
+    """
 
     # Handle ground truth format
     if isinstance(ground_truth, list):
@@ -620,7 +635,7 @@ def compute_score(
 
     local_support = 0.0
     contrastive = 0.0
-    # counterfactual = 0.0
+    counterfactual = 0.0
     if regions and pil_image is not None:
         # V[i,j] = V(crop_i, reasoning_j)，local_support 与 contrastive 共用，避免重复推理
         verify_mat = _verify_matrix(regions, pil_image)
@@ -642,10 +657,10 @@ def compute_score(
     w = {**default_weights, **(weights or {})}
 
     final_score = (
-    #     w["answer"] * answer_score +
-    #     w["format"] * format_score +
+        # w["answer"] * answer_score +
+        # w["format"] * format_score +
         w["local_support"] * local_support +
-        w["contrastive"] * contrastive +
+        w["contrastive"] * contrastive 
         # w["counterfactual"] * counterfactual
     )
 
